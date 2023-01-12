@@ -11,12 +11,12 @@
   {"git":
    {"url": "https://github.com/JLimperg/aesop",
     "subDir?": null,
-    "rev": "79127e2c0a6254eae99a1e919fdd6da8815189ff",
+    "rev": "72610cec1cd686884a08704f5fa91b45262136f9",
     "name": "aesop",
     "inputRev?": "master"}},
   {"git":
    {"url": "https://github.com/leanprover/std4",
     "subDir?": null,
-    "rev": "a109889bf299f0d086f93a228e4c152f40ff5b0d",
+    "rev": "a61aa8ea7450c4d27e38dad7604d33891788b1ea",
     "name": "std",
     "inputRev?": "main"}}]}

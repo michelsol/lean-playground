@@ -17,7 +17,7 @@ end
 section
   variable (α) [Carrier_Of α]
 
-  class Binop_Of where binop_of {X : α} : X → X → X
+  class BinOp_Of where binop_of {X : α} : X → X → X
   class Identity_Of where id_of {X : α} : X
   class Sym_Of where sym_of {X : α} : X → X
   class Add_Of where add_of {X : α} : X → X → X
@@ -38,35 +38,35 @@ section
     instance : Carrier_Of Carrier := ⟨λ X => X.carrier⟩
   end Carrier
 
-  structure Binop extends Carrier where
+  structure BinOp extends Carrier where
     binop : carrier → carrier → carrier
 
-  namespace Binop
-    instance : Carrier_Of Binop := ⟨λ X => X.carrier⟩
-    instance : Binop_Of Binop := ⟨λ {X} => X.binop⟩
-  end Binop
+  namespace BinOp
+    instance : Carrier_Of BinOp := ⟨λ X => X.carrier⟩
+    instance : BinOp_Of BinOp := ⟨λ {X} => X.binop⟩
+  end BinOp
 
-  structure BinopId extends Binop where
+  structure BinOpId extends BinOp where
     identity : carrier
 
-  namespace BinopId
-    instance : Carrier_Of BinopId := ⟨λ X => X.carrier⟩
-    instance : Identity_Of BinopId := ⟨λ {X} => X.identity⟩
-    instance : Binop_Of BinopId := ⟨λ {X} => X.binop⟩
-    instance : Coe BinopId Binop := ⟨λ X => X.toBinop⟩
-  end BinopId
+  namespace BinOpId
+    instance : Carrier_Of BinOpId := ⟨λ X => X.carrier⟩
+    instance : Identity_Of BinOpId := ⟨λ {X} => X.identity⟩
+    instance : BinOp_Of BinOpId := ⟨λ {X} => X.binop⟩
+    instance : Coe BinOpId BinOp := ⟨λ X => X.toBinOp⟩
+  end BinOpId
 
-  structure BinopIdSym extends BinopId where
+  structure BinOpIdSym extends BinOpId where
     sym : carrier → carrier
 
-  namespace BinopIdSym
-    instance : Carrier_Of BinopIdSym := ⟨λ X => X.carrier⟩
-    instance : Identity_Of BinopIdSym := ⟨λ {X} => X.identity⟩
-    instance : Binop_Of BinopIdSym := ⟨λ {X} => X.binop⟩
-    instance : Sym_Of BinopIdSym := ⟨λ {X} => X.sym⟩
-    instance : Coe BinopIdSym BinopId := ⟨λ X => X.toBinopId⟩
-    instance : Coe BinopIdSym Binop := ⟨λ X => X.toBinop⟩
-  end BinopIdSym
+  namespace BinOpIdSym
+    instance : Carrier_Of BinOpIdSym := ⟨λ X => X.carrier⟩
+    instance : Identity_Of BinOpIdSym := ⟨λ {X} => X.identity⟩
+    instance : BinOp_Of BinOpIdSym := ⟨λ {X} => X.binop⟩
+    instance : Sym_Of BinOpIdSym := ⟨λ {X} => X.sym⟩
+    instance : Coe BinOpIdSym BinOpId := ⟨λ X => X.toBinOpId⟩
+    instance : Coe BinOpIdSym BinOp := ⟨λ X => X.toBinOp⟩
+  end BinOpIdSym
 
   structure AddZeroMulOne extends Carrier where
     add : carrier → carrier → carrier
@@ -80,13 +80,13 @@ section
     instance : Zero_Of AddZeroMulOne := ⟨λ {X} => X.zero⟩
     instance : Mul_Of AddZeroMulOne := ⟨λ {X} => X.mul⟩
     instance : One_Of AddZeroMulOne := ⟨λ {X} => X.one⟩
-    def toAddZero (X : AddZeroMulOne) : BinopId := {
+    def toAddZero (X : AddZeroMulOne) : BinOpId := {
       carrier := X
       binop := X.add
       identity := X.zero
     }
-    instance : Coe AddZeroMulOne BinopId := ⟨λ X => X.toAddZero⟩
-    def toMulOne (X : AddZeroMulOne) : BinopId := {
+    instance : Coe AddZeroMulOne BinOpId := ⟨λ X => X.toAddZero⟩
+    def toMulOne (X : AddZeroMulOne) : BinOpId := {
       carrier := X
       binop := X.mul
       identity := X.one
@@ -104,13 +104,13 @@ section
     instance : Mul_Of AddZeroNegMulOne := ⟨λ {X} => X.mul⟩
     instance : One_Of AddZeroNegMulOne := ⟨λ {X} => X.one⟩
     instance : Coe AddZeroNegMulOne AddZeroMulOne := ⟨λ X => X.toAddZeroMulOne⟩
-    def toAddZeroNeg (X : AddZeroNegMulOne) : BinopIdSym := {
+    def toAddZeroNeg (X : AddZeroNegMulOne) : BinOpIdSym := {
       carrier := X
       binop := X.add
       identity := X.zero
       sym := X.neg
     }
-    instance : Coe AddZeroNegMulOne BinopIdSym := ⟨λ X => X.toAddZeroNeg⟩
+    instance : Coe AddZeroNegMulOne BinOpIdSym := ⟨λ X => X.toAddZeroNeg⟩
   end AddZeroNegMulOne
 
 end
@@ -119,7 +119,7 @@ end
 
 
 section
-  local infixl:70 " ⋆ " => Binop_Of.binop_of
+  local infixl:70 " ⋆ " => BinOp_Of.binop_of
   local notation:max "𝟙" => Identity_Of.id_of
   local postfix:max "⁻ⁱ" => Sym_Of.sym_of
   -- local infixl:65 " + " => Add_Of.add_of
@@ -132,40 +132,40 @@ section
   local postfix:max "⁻¹" => Inv_Of.inv_of
 
 
-  class Comm (X : Binop) : Prop where
+  class Comm (X : BinOp) : Prop where
     comm : ∀ x y : X, x ⋆ y = y ⋆ x
   export Comm (comm)
 
-  class Semigroup (X : Binop) : Prop where
+  class Semigroup (X : BinOp) : Prop where
     assoc : ∀ x y z : X, (x ⋆ y) ⋆ z = x ⋆ (y ⋆ z)
   export Semigroup (assoc)
 
-  class CommSemigroup (X : Binop) extends Semigroup X, Comm X : Prop
+  class CommSemigroup (X : BinOp) extends Semigroup X, Comm X : Prop
 
-  class Unital (X : BinopId) : Prop where
+  class Unital (X : BinOpId) : Prop where
     id_op : ∀ x : X, 𝟙 ⋆ x = x
     op_id : ∀ x : X, x ⋆ 𝟙 = x
   export Unital (id_op op_id)
   attribute [simp] id_op op_id
 
-  class Monoid (X : BinopId) extends Semigroup X, Unital X : Prop
+  class Monoid (X : BinOpId) extends Semigroup X, Unital X : Prop
 
-  class CommMonoid (X : BinopId) extends Monoid X, Comm X : Prop
+  class CommMonoid (X : BinOpId) extends Monoid X, Comm X : Prop
 
-  class Symmetric (X : BinopIdSym) : Prop where
+  class Symmetric (X : BinOpIdSym) : Prop where
     op_sym : ∀ x : X, x ⋆ x⁻ⁱ = 𝟙
     sym_op : ∀ x : X, x⁻ⁱ ⋆ x = 𝟙
   export Symmetric (op_sym sym_op)
   attribute [simp] op_sym sym_op
 
-  class Group (X : BinopIdSym) extends Monoid X, Symmetric X : Prop
+  class Group (X : BinOpIdSym) extends Monoid X, Symmetric X : Prop
 
-  class CommGroup (X : BinopIdSym) extends Group X, Comm X : Prop
+  class CommGroup (X : BinOpIdSym) extends Group X, Comm X : Prop
 
-  class Binop.Morphism {X Y : Binop} (f : X → Y) : Prop where
+  class BinOp.Morphism {X Y : BinOp} (f : X → Y) : Prop where
     op_law : ∀ x y, f (x ⋆ y) = f x ⋆ f y
 
-  class Unital.Morphism {X Y} [Unital X] [Unital Y] (f : X → Y) extends Binop.Morphism f : Prop where
+  class Unital.Morphism {X Y} [Unital X] [Unital Y] (f : X → Y) extends BinOp.Morphism f : Prop where
     op_id : f 𝟙 = 𝟙
 
   class Monoid.Morphism {X Y} [Monoid X] [Monoid Y] (f : X → Y) extends Unital.Morphism f : Prop
@@ -189,15 +189,16 @@ section
   class Ring (X : AddZeroNegMulOne) extends Semiring X : Prop where
     sym_add_zero_neg : Symmetric X
   instance [Ring X] : Symmetric X := Ring.sym_add_zero_neg
-  local instance [Ring X] : CommMonoid X.toAddZeroNeg := inferInstanceAs $ CommMonoid X in
+  instance [Ring X] : Semiring X := inferInstance
+  local instance [Ring X] : CommMonoid X := inferInstanceAs <| CommMonoid X.toAddZeroMulOne in
   instance [Ring X] : CommGroup X := {}
 
   class CommRing (X : AddZeroNegMulOne) extends Ring X, Comm X.toMulOne : Prop where
   instance [CommRing X] : CommSemiring X := {}
 
   class Ring.Morphism {X Y} [Ring X] [Ring Y] (f : X → Y) : Prop where
-    add_morphism : @Monoid.Morphism X.toAddZero Y.toAddZero _ _ f
-    mul_morphism : @Monoid.Morphism X.toMulOne Y.toMulOne _ _ f
+    add_morphism : Monoid.Morphism (show X.toAddZero → Y.toAddZero from f)
+    mul_morphism : Monoid.Morphism (show X.toMulOne → Y.toMulOne from f)
 
 
   def kernel {X Y} [Unital X] [Unital Y] (f : X → Y) [Unital.Morphism f] : X → Prop
@@ -209,7 +210,7 @@ section
   example [CommMonoid X] : ∀ x : X, x ⋆ 𝟙 = x := by simp
   example [CommGroup X] : ∀ x : X, x ⋆ 𝟙 = x := op_id
   example [CommGroup X] : ∀ x : X, x ⋆ 𝟙 = x := 
-  show ∀ x : (X : BinopId), x ⋆ 𝟙 = x from
+  show ∀ x : (X : BinOpId), x ⋆ 𝟙 = x from
   by simp
   example [CommGroup X] : ∀ x : X, x ⋆ x⁻ⁱ = 𝟙 := by simp
   example [CommRing X] : ∀ x : X, x + 𝟬 = x := 
@@ -217,18 +218,23 @@ section
   show ∀ x : X, x ⋆ 𝟙 = x from
   by simp
 
-  example {X Y : Binop} (f : X → Y) [Binop.Morphism f] : ∀ x y, f (x ⋆ y) = f x ⋆ f y := Binop.Morphism.op_law
-  example {X Y Z : Binop} (f : X → Y) [fi : Binop.Morphism f] (g : Y → Z) [gi : Binop.Morphism g] 
-  : Binop.Morphism (g ∘ f) where
+  example {X Y : BinOp} (f : X → Y) [BinOp.Morphism f] : ∀ x y, f (x ⋆ y) = f x ⋆ f y := BinOp.Morphism.op_law
+  example {X Y Z : BinOp} (f : X → Y) [fi : BinOp.Morphism f] (g : Y → Z) [gi : BinOp.Morphism g] 
+  : BinOp.Morphism (g ∘ f) where
     op_law x y := show g (f (x ⋆ y)) = g (f x) ⋆ g (f y) from fi.op_law .. ▸ gi.op_law .. ▸ rfl
 
+  example {X Y} [Ring X] [Ring Y] (f : X → Y) [Ring.Morphism f] : f 𝟬 = 𝟬 
+    := Ring.Morphism.add_morphism.op_id
   example {X Y} [Ring X] [Ring Y] (f : X → Y) [Ring.Morphism f] : f 𝟭 = 𝟭 
     := Ring.Morphism.mul_morphism.op_id
 
   example {X} [Ring X] : Unital X := inferInstance
 
-  example {X Y} [Ring X] [Ring Y] (f : X → Y) [@Unital.Morphism X Y _ _ f] : (@kernel X Y _ _ f) (𝟬 : X) := 
-    @Unital.Morphism.op_id X Y _ _ f _
+  example {X Y} [Ring X] [Ring Y] (f : X → Y) 
+    [i : Unital.Morphism (show X.toAddZero → Y.toAddZero from f)]
+    : kernel (show X.toAddZero → Y.toAddZero from f) (𝟬 : X) := 
+    i.op_id
+
 
 end
 
