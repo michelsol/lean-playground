@@ -2,7 +2,6 @@ import Playground.Data.BinaryTree
 import Playground.Data.Bool
 import Playground.Data.ClassProp
 import Playground.Data.Fin
-import Playground.Data.Finset
 import Playground.Data.FinType
 import Playground.Data.GeneralDotNotation
 import Playground.Data.List

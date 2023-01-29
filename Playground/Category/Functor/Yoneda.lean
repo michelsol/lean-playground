@@ -98,7 +98,8 @@ section
     rw [hom_map_eq_isomorphism_inv_component]
     rw [isomorphism_inv_at_eq_isomorphismAt_inv]
     apply flip Function.Injective.comp (λ _ _ => congrArg ULift.down)
-    exact Function.LeftInverse.injective <| congrFun <| (isomorphismAt U (yoneda C V)).inv_hom
+    have : ∀ x, ((isomorphismAt ..).hom ∘ (isomorphismAt ..).inv) x = x := congrFun (isomorphismAt U (yoneda C V)).inv_hom
+    exact Function.LeftInverse.injective this
 
   theorem full {C} [Category C] : (yoneda C).Full := by
     intro U V

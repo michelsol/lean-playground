@@ -275,7 +275,7 @@ section
     def Term.subst (v : Var) (t : Term language) : Term language → Term language
     | var x => if x = v then t else var x
     | app n f l => app n f (λ i => subst v t (l i))
-    scoped notation:max u "[" v ":=" t "]"  => Term.subst v t u
+    scoped notation:max u "[" v " := " t "]"  => Term.subst v t u
 
     inductive Formula.ValidSubst (v : Var) (t : Term language) : Formula language → Type
     | and {f g : Formula _} : f.ValidSubst v t → g.ValidSubst v t → (f ∧ g).ValidSubst v t
@@ -287,7 +287,7 @@ section
     | all {x} {f} : v ≠ x → x ∉ t → f.ValidSubst v t → (∀ x; f).ValidSubst v t
     | ex {x} {f} : v ≠ x → x ∉ t → f.ValidSubst v t → (∃ x; f).ValidSubst v t
     | eq {a b : Term language} : (a ≡ b).ValidSubst v t
-    scoped notation:max p "[" v ":=" t "] valid" => Formula.ValidSubst v t p
+    scoped notation:max p "[" v " := " t "] valid" => Formula.ValidSubst v t p
 
     def Formula.subst (v : Var) (t : Term language)
       : (f : Formula language) → f[v := t] valid → Formula language
@@ -300,7 +300,7 @@ section
     | all x p, .all _ _ h3 => all x (p.subst v t h3)
     | ex x p, .ex _ _ h3 => ex x (p.subst v t h3)
     | eq a b, _ => eq a[v := t] b[v := t]
-    scoped notation:max p "[" v ":=" t "," h "]"  => Formula.subst v t p h
+    scoped notation:max p "[" v " := " t ", " h "]"  => Formula.subst v t p h
 
     open Formula in
     inductive Proof : List (Formula language) → Formula language → Type
@@ -325,10 +325,10 @@ section
       :  Proof s (t ≡ u) → Proof s p[x := t, ht] → Proof s p[x := u, hu]
 
 
-    scoped notation:max s " ⊢ " f => (Proof s f)
-    scoped notation:max "⊢ " f => (Proof ∅ f)
-    scoped notation:max s " ⊢[" L "] " f => (Proof (language := L) s f)
-    scoped notation:max "⊢[" L "] " f => (Proof (language := L) ∅ f)
+    scoped notation:max s " ⊢ " f => Proof s f
+    scoped notation:max "⊢ " f => Proof ∅ f
+    scoped notation:max s " ⊢[" L "] " f => Proof (language := L) s f
+    scoped notation:max "⊢[" L "] " f => Proof (language := L) ∅ f
 
 
     def Term.newFreshVar : Term language → Var
@@ -403,7 +403,7 @@ section
   | var x => i.varValue x
   | app _ f l => i.functionValue _ f λ k => (l k).value i
 
-  scoped notation:max "⟦" t " | " i "⟧"  => (Term.value i t)
+  scoped notation:max "⟦" t " | " i "⟧"  => Term.value i t
 
   def Interpretation.setPropValue {language} (i : Interpretation language) (v : Nat) (d : Bool) 
   : Interpretation language := 
@@ -413,7 +413,7 @@ section
   : Interpretation language := 
   { i with varValue := λ a => if a = v then d else i.varValue a }
 
-  scoped notation:max i "⟦" v ":=" d "⟧" => (Interpretation.setVarValue i v d)
+  scoped notation:max i "⟦" v " := " d "⟧" => Interpretation.setVarValue i v d
 
   -- todo: change this to inductive
   def Formula.isTrueUnder {language} (i : Interpretation language) : Formula language → Prop
@@ -427,19 +427,19 @@ section
   | ex x f => ∃ d, f.isTrueUnder i⟦x := d⟧
   | eq a b => ⟦a | i⟧ = ⟦b | i⟧
 
-  scoped notation:max "⊨[" i "] " f  => (Formula.isTrueUnder i f)
+  scoped notation:max "⊨[" i "] " f  => Formula.isTrueUnder i f
   def Formula.isTrue {language} (f : Formula language) := ∀ i, ⊨[i] f
-  scoped notation:max "⊨ " f  => (Formula.isTrue f)
+  scoped notation:max "⊨ " f  => Formula.isTrue f
   def Formula.entailsUnder {language} (i : Interpretation language) 
     (s : List (Formula language)) (f : Formula language) := (∀ x ∈ s, ⊨[i] x) → ⊨[i] f
-  scoped notation:max s " ⊨[" i "] " f  => (Formula.entailsUnder i s f)
+  scoped notation:max s " ⊨[" i "] " f  => Formula.entailsUnder i s f
   def Formula.entails {language} (s : List (Formula language)) (f : Formula language) := ∀ i, s ⊨[i] f
-  scoped notation:max s " ⊨ " f  => (Formula.entails s f)
+  scoped notation:max s " ⊨ " f  => Formula.entails s f
 
   def Proof.size {s} (f : Formula language) (h : s ⊢ f) : Nat :=
     let x : Inhabited Nat := 
     match h with
-    | ax .. => ⟨0⟩
+    | ax .. => ⟨1⟩
     | weaken h1 h2 => ⟨h2.size + 1⟩
     | and_intro h1 h2 => ⟨h1.size + h2.size + 1⟩
     | and_elim_left h1 => ⟨h1.size + 1⟩
@@ -450,26 +450,26 @@ section
     | imp_intro h1 => ⟨h1.size + 1⟩
     | imp_elim h1 h2 => ⟨h1.size + h2.size + 1⟩
     | bot_elim h1 h2 => ⟨h2.size + 1⟩
-    | lem h1 => ⟨0⟩
+    | lem h1 => ⟨1⟩
     | all_intro h1 h2 h3 => ⟨h3.size + 1⟩
     | all_elim h1 h2 => ⟨h2.size + 1⟩
     | ex_intro h1 => ⟨h1.size + 1⟩
     | ex_elim h1 h2 h3 h4 => ⟨h3.size + h4.size + 1⟩
-    | eq_intro h1 => ⟨0⟩
+    | eq_intro h1 => ⟨1⟩
     | eq_elim h1 h2 h3 h4 h5 => ⟨h4.size + h5.size + 1⟩
   x.1
 
 
-  theorem Formula.isTrueUnder_invariant_of_not_Mem {language} {f} {x : Var}
-    (hx : x ∉ f) (i : Interpretation language) (d : i.domain)
-    : (⊨[i] f) ↔ ⊨[i⟦x := d⟧] f := ⟨by
+  theorem Formula.isTrueUnder_invariant_of_not_Mem {language} {f} {v : Var}
+    (hv : v ∉ f) (i : Interpretation language) (d : i.domain)
+    : (⊨[i] f) ↔ ⊨[i⟦v := d⟧] f := ⟨by
       intro h; induction f with
       | and f g hf hg =>
-          rw [Mem.Mem_and_iff] at hx; exact ⟨hf (λ c => hx (.inl c)) h.1, hg (λ c => hx (.inr c)) h.2⟩
+          rw [Mem.Mem_and_iff] at hv; exact ⟨hf (λ c => hv (.inl c)) h.1, hg (λ c => hv (.inr c)) h.2⟩
       | or f g hf hg =>
-          rw [Mem.Mem_or_iff] at hx; match h with
-          | .inl h => exact Or.inl $ hf (λ c => hx (.inl c)) h
-          | .inr h => exact Or.inr $ hg (λ c => hx (.inr c)) h
+          rw [Mem.Mem_or_iff] at hv; match h with
+          | .inl h => exact Or.inl $ hf (λ c => hv (.inl c)) h
+          | .inr h => exact Or.inr $ hg (λ c => hv (.inr c)) h
       | _ => sorry
       , sorry⟩
 
@@ -504,8 +504,29 @@ section
   decreasing_by simp_wf; dsimp [size]; simp_arith
 
 
-  theorem Formula.isTrueUnder_subst_iff {language} {f} {x} {t} (i : Interpretation language) (ht)
-  : (⊨[i] f[x := t, ht]) ↔ ⊨[i⟦x := ⟦t | i⟧⟧] f :=
+  theorem Term.subst_value {language} {a} {v} {t} (i : Interpretation language)
+  : ⟦a[v := t] | i⟧ = ⟦a | i⟦v := ⟦t | i⟧⟧⟧ :=
+  match a with
+  | var x =>
+    if h : x = v then by
+      dsimp [subst]
+      rw [if_pos h]
+      dsimp [value, Interpretation.setVarValue]
+      rw [if_pos h]
+    else by
+      dsimp [subst]
+      rw [if_neg h]
+      dsimp [value, Interpretation.setVarValue]
+      rw [if_neg h]
+  | app n f l => by
+    dsimp [subst]
+    dsimp [value]
+    congr
+    funext k
+    apply subst_value
+
+  theorem Formula.isTrueUnder_subst_iff {language} {f} {v} {t} (i : Interpretation language) (ht)
+  : (⊨[i] f[v := t, ht]) ↔ ⊨[i⟦v := ⟦t | i⟧⟧] f :=
     match f, ht with
     | .and f g, .and h1 h2 => by
       dsimp [subst, isTrueUnder]
@@ -523,12 +544,58 @@ section
       exact ⟨id, id⟩
     | app n f l, h1 => by
       simp [subst]
-      simp [subst, isTrueUnder]
-      -- have := isTrueUnder_subst_iff i h1
+      apply Bool.eq_iff_eq_true_iff.mp
+      congr
+      funext k
+      apply Term.subst_value
+    | all x p, .all h1 h2 h3 => by
+      dsimp [subst]
+      dsimp [isTrueUnder]
+      have : {α : Type} → {p q : α → _} → (∀ x, (p x ↔ q x)) → ((∀ x, p x) ↔ ∀ x, q x) := 
+        λ h => ⟨λ g x => (h x).mp (g x), λ g x => (h x).mpr (g x)⟩
+      apply this
+      intro d
+      rw [isTrueUnder_subst_iff i⟦x := d⟧ h3]
       sorry
-    | all x p, .all _ _ h3 => sorry
-    | ex x p, .ex _ _ h3 => sorry
-    | eq a b, _ => sorry
+    | ex x p, .ex h1 h2 h3 => by
+      dsimp [subst]
+      dsimp [isTrueUnder]
+      have : {α : Type} → {p q : α → _} → (∀ x, (p x ↔ q x)) → ((∃ x, p x) ↔ ∃ x, q x) := 
+        λ h => ⟨λ ⟨x, g⟩ => ⟨x, (h x).mp g⟩, λ ⟨x, g⟩ => ⟨x, (h x).mpr g⟩⟩
+      apply this
+      intro d
+      rw [isTrueUnder_subst_iff i⟦x := d⟧ h3]
+      sorry
+    | eq a b, _ => by
+      simp [subst]
+      dsimp [isTrueUnder]
+      rw [Term.subst_value]
+      rw [Term.subst_value]
+
+
+
+    example {language} (i : Interpretation language) (f : Formula language) 
+    (x : Var) (v : Var)
+    (t : Term language) (d : i.domain) :
+      (⊨[i⟦x := d⟧⟦v := ⟦t | i⟦x := d⟧⟧⟧] f) ↔ ⊨[i⟦v := ⟦t | i⟧⟧⟦x := d⟧] f
+      := sorry
+
+    open Term in
+    example {language} (i : Interpretation language) (a : Term language) 
+    (x : Var) (v : Var)
+    (t : Term language) (d : i.domain) :
+      ⟦a | i⟦x := d⟧⟦v := ⟦t | i⟦x := d⟧⟧⟧ ⟧ = ⟦a | i⟦v := ⟦t | i⟧⟧⟦x := d⟧ ⟧
+      := match a with
+      | .var y =>
+        if h : y = x then by
+          dsimp [value]
+          dsimp [Interpretation.setVarValue]
+          -- rw [h]
+          simp [h]
+          sorry
+        else
+          sorry
+      | .app n f l => sorry
 
   end
 end

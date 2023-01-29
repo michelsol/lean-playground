@@ -1,6 +1,6 @@
 import Playground.Data.BinaryTree.Basic
 import Playground.Data.List.Is_Sorted
-import Playground.Data.List.Perm
+import Mathlib.Data.List.Perm
 import Mathlib.Init.Algebra.Order
 
 namespace Data.BinaryTree

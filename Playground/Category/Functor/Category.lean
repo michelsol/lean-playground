@@ -55,45 +55,6 @@ section
       hom_map_id := λ _ => by simp; rfl
     }
 
-  def oppIsomorphism (C D) [Category C] [Category D] : Instances.Cat.Isomorphism (C ⥤ D)ᵒᵖ (Cᵒᵖ ⥤ Dᵒᵖ) := {
-      hom := {
-        obj_map := λ (op F) => F.opp
-        hom_map := sorry
-        hom_map_comp := sorry
-        hom_map_id := sorry
-      }
-      inv := {
-        obj_map := λ F => ⟨{
-            obj_map := λ X => (F (op X)).unop
-            hom_map := λ {X Y} f => (F.hom_map f.op).unop
-            hom_map_comp := λ {X Y Z} f g => by
-              apply congrArg unop
-              show F.hom_map (g.op ≫ f.op) = F.hom_map g.op ≫ F.hom_map f.op
-              rw [←hom_map_comp]
-            hom_map_id := λ X => by
-              apply congrArg unop
-              show F.hom_map (𝟙 _) = 𝟙 _
-              simp
-          }⟩
-        hom_map := λ {F G} (α : _ ⟹ _) => op {
-          component := λ X => (α (op X)).unop
-          naturality := @λ X Y f => by
-            show (α _ ≫ G.hom_map _).unop = (F.hom_map _ ≫ α _).unop
-            rw [naturality]
-        }
-        hom_map_comp := λ {F G H} (α : _ ⟹ _) (β : _ ⟹ _) => by
-          simp
-          apply congrArg op
-          apply eq_of_component_eq
-          ext X
-          simp
-          sorry
-        hom_map_id := sorry
-      }
-      hom_inv := sorry
-      inv_hom := sorry
-    }
-
 end
 
 section
