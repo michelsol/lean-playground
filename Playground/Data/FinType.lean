@@ -1,17 +1,7 @@
 import Mathlib.Logic.Function.Basic
+import Mathlib.Tactic.Linarith
+import Mathlib.Tactic.Zify
 import Playground.Data.GeneralDotNotation
-
-section
-  namespace Nat
-
-  theorem pred_lt_of_lt_succ (ha : a ≠ 0) (h : a < b + 1) : a - 1 < b :=
-    lt_of_succ_lt_succ $ (succ_pred ha).symm ▸ h
-
-  theorem succ_eq_of_eq_pred (hb : b ≠ 0) (h : a = b - 1) : a + 1 = b :=
-    succ_pred hb ▸ congrArg succ h
-
-  end Nat
-end
 
 section
   namespace Function
@@ -33,72 +23,70 @@ end
 section
   open Function
 
-  def fin_map_excluding (a : Fin (n + 1)) : { x : Fin (n + 1) // x ≠ a } → Fin n := 
-    open Nat in
-    match a with | ⟨a, a_lt⟩ => λ ⟨⟨i, i_lt⟩, i_prop⟩ =>
+  def finMapExcluding : (a : Fin (n + 1)) → { x : Fin (n + 1) // x ≠ a } → Fin n
+    | ⟨a, a_lt⟩, ⟨⟨i, i_lt⟩, i_prop⟩ =>
+      have : i ≠ a := λ c => i_prop (Fin.eq_of_val_eq c)
       if hi : i ≤ a then
-        have hi : i < a := lt_of_le_of_ne hi (λ c => i_prop $ Fin.eq_of_val_eq c)
-        { val := i, isLt := lt_of_lt_of_le hi $ le_of_lt_succ a_lt }
-      else have hi : a < i := Nat.lt_of_not_le hi
-        { val := i - 1, isLt := 
-          pred_lt_of_lt_succ (not_eq_zero_of_lt hi) i_lt }
+        have := lt_of_le_of_ne hi this
+        { val := i, isLt := by linarith }
+      else
+        have : i > 0 := by linarith
+        { val := i - 1, isLt := by zify [this]; linarith }
 
-  theorem injective_fin_map_excluding (a : Fin (n + 1)) : fin_map_excluding a |> Injective :=
-    open Nat in by
-    cases a with | mk a a_lt =>
-    intro ⟨⟨i, i_lt⟩, i_prop⟩ ⟨⟨j, j_lt⟩, j_prop⟩ (h : dite .. = dite ..)
-    apply Subtype.eq
-    apply Fin.eq_of_val_eq
-    show i = j
-    exact
-    if hi : i ≤ a then
-      if hj : j ≤ a then by
-        simp [hi, hj] at h
-        exact h
-      else by
-        simp [hi, hj] at h
-        have hj : a < j := Nat.lt_of_not_le hj
-        have := succ_eq_of_eq_pred (not_eq_zero_of_lt hj) h
-        rw [←this] at hj
-        have := le_antisymm hi (le_of_lt_succ hj)
-        exact (i_prop $ Fin.eq_of_val_eq this).elim
-    else 
-      if hj : j ≤ a then by
-        simp [hi, hj] at h
-        have hi : a < i := Nat.lt_of_not_le hi
-        have := succ_eq_of_eq_pred (not_eq_zero_of_lt hi) h.symm
-        rw [←this] at hi
-        have := le_antisymm (le_of_lt_succ hi) hj
-        exact (j_prop $ Fin.eq_of_val_eq this.symm).elim
-      else by
-        simp [hi, hj] at h
-        have hi : a < i := Nat.lt_of_not_le hi
-        have hj : a < j := Nat.lt_of_not_le hj
-        exact Nat.pred_inj (Nat.zero_lt_of_lt hi) (Nat.zero_lt_of_lt hj) h
+  theorem finMapExcluding_injective : ∀ a : Fin (n + 1), (finMapExcluding a).Injective
+    | ⟨a, a_lt⟩, ⟨⟨i, i_lt⟩, i_prop⟩, ⟨⟨j, j_lt⟩, j_prop⟩, (h : dite .. = dite ..) =>
+      if hi : i ≤ a then
+        if hj : j ≤ a then by
+          simp [hi, hj] at h
+          subst h; rfl
+        else by
+          simp [hi, hj] at h
+          have : j > 0 := by linarith
+          zify [this] at h
+          have : i = a := by linarith
+          subst this; contradiction
+      else 
+        if hj : j ≤ a then by
+          simp [hi, hj] at h
+          have : i > 0 := by linarith
+          zify [this] at h
+          have : j + 1 = i := by linarith
+          have : j = a := by linarith
+          subst this; contradiction
+        else by
+          simp [hi, hj] at h
+          have i_pos : i > 0 := by linarith
+          have j_pos : j > 0 := by linarith
+          zify [i_pos, j_pos] at h
+          have : i = j := by linarith
+          subst this; rfl
 
   theorem le_of_injective {f : Fin n → Fin m} (hf : Injective f) : n ≤ m :=
-    open Nat Fin in
     match n, m with
-    | 0, _ => zero_le _
-    | _ + 1, 0 => (not_lt_zero _ (f ⟨0, zero_lt_succ _⟩).isLt).elim
+    | 0, _ => Nat.zero_le _
+    | _ + 1, 0 => (Nat.not_lt_zero _ (f ⟨0, Nat.zero_lt_succ _⟩).isLt).elim
     | n + 1, m + 1 =>
-      let a := f { val := n, isLt := n.lt_succ_self }
+      let a := f { val := n, isLt := by linarith }
       let g₁ : Fin n → { x : Fin (m + 1) // x ≠ a } :=
         λ { val := i, isLt := i_lt_n } => {
-          val := f { val := i, isLt := i_lt_n·lt_trans n.lt_succ_self }
-          property := λ c => Nat.ne_of_lt i_lt_n $ val_eq_of_eq $ hf c
+          val := f { val := i, isLt := by linarith }
+          property := λ c => Nat.ne_of_lt i_lt_n $ Fin.val_eq_of_eq $ hf c
         }
       have hg₁ : Injective g₁ := λ i j h =>
-        have := val_eq_of_eq $ hf $ congrArg Subtype.val h
-        eq_of_val_eq this
-      let hg₂ := injective_fin_map_excluding a
-      succ_le_succ <| le_of_injective <| Injective.comp hg₂ hg₁
+        have := Fin.val_eq_of_eq $ hf $ congrArg Subtype.val h
+        Fin.eq_of_val_eq this
+      let hg₂ := finMapExcluding_injective a
+      Nat.succ_le_succ <| le_of_injective <| Injective.comp hg₂ hg₁
 
   theorem ge_of_surjective {f : Fin n → Fin m} (hf : Surjective f) : n ≥ m :=
     right_inverse.is_injective hf |> le_of_injective
 
-  theorem eq_of_bijective {f : Fin n → Fin m} (hf : Bijective f) : n = m :=
+  theorem eq_of_bijective {f : Fin n → Fin m} (hf : Bijective f) : n = m := 
     (le_of_injective hf.injective)·le_antisymm (ge_of_surjective hf.surjective)
+
+example (a b : ℕ) (h : a ≤ b) (g : b ≤ a) : a = b := by
+  -- linarith
+  sorry
 end
 
 section

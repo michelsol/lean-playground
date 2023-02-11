@@ -7,13 +7,16 @@ section
   variable {C} [Category C] {X Y Z : C} (f : X ⟶ Y) (g : Z ⟶ Y)
   namespace Pullback
   structure Data where
+    -- below is the solution data.
     object : C
     morphism₁ : object ⟶ X
     morphism₂ : object ⟶ Z
+    -- below is the problem solved by the data.
     commutative : morphism₁ ≫ f = morphism₂ ≫ g -- this is part of morphism in the relevant category
   instance : Universal.CanFactorThrough (Data f g) where
     objectType := C
     object := Data.object
+    -- intuitively f is a more specific solution than d because f is decomposed into some expression that uses d
     FactorsThroughVia f d α := α ≫ d.morphism₁ = f.morphism₁ ∧ α ≫ d.morphism₂ = f.morphism₂
     FactorsThroughVia_comp {f d f' α α'} (hα : _ ∧ _) (hα' : _ ∧ _) := show _ ∧ _ from
       ⟨assoc _ α _ ▸ hα.1 ▸ hα'.1, assoc _ α _ ▸ hα.2 ▸ hα'.2⟩

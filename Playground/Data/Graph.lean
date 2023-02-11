@@ -52,32 +52,55 @@ section
       | nil i => [i]
       | cons i k w j h => j :: w.nodeList
 
+    def nodes {i j} : graph.Walk i j → Set α
+      | nil i => {i}
+      | cons i k w j h => w.nodes ∪ {j}
+    
     theorem first_mem_nodeList {i j} (w : graph.Walk i j) : i ∈ w.nodeList :=
       match w with
       | nil _ => List.Mem.head []
       | cons _ _ w _ _ => List.Mem.tail _ w.first_mem_nodeList
-
     theorem last_mem_nodeList {i j} (w : graph.Walk i j) : j ∈ w.nodeList :=
       match w with
       | nil _ => List.Mem.head []
       | cons _ _ _ _ _ => List.Mem.head _
-
     def WalkNotIn_of_notIn_nodeList {i j} (w : graph.Walk i j) {a} (h : a ∉ w.nodeList) :=
       graph.WalkNotIn {a}
         ⟨i, λ c => by subst c; exact h w.first_mem_nodeList⟩
         ⟨j, λ c => by subst c; exact h w.last_mem_nodeList⟩
-
     def to_WalkNotIn_of_notIn_nodeList {i j} (w : graph.Walk i j) {a} (h : a ∉ w.nodeList)
       : w.WalkNotIn_of_notIn_nodeList h :=
       match w, h with
       | Walk.nil _, h => Walk.nil _
-      | Walk.cons i k w j hks, h =>
-        let r : Walk .. := (to_WalkNotIn_of_notIn_nodeList w λ c => h $ List.mem_cons.mpr $ Or.inr c)
-        show Walk .. from
+      | Walk.cons _ k w _ hks, h =>
+        let r := (to_WalkNotIn_of_notIn_nodeList w λ c => h $ List.mem_cons.mpr $ Or.inr c)
         Walk.cons _ _ r _ hks
+    theorem to_WalkNotIn_of_notIn_nodeList_preserves_nodeList {i j} (w : graph.Walk i j) {a} (h : a ∉ w.nodeList)
+      : (w.to_WalkNotIn_of_notIn_nodeList h).nodeList.map Subtype.val = w.nodeList := 
+      match w, h with
+      | Walk.nil _, h => rfl
+      | Walk.cons i k w j hks, h => 
+        congrArg (List.cons j) $ 
+        to_WalkNotIn_of_notIn_nodeList_preserves_nodeList w λ c => h $ List.mem_cons.mpr $ Or.inr c
 
-    theorem th {i j} (w : graph.Walk i j) {a} (h : a ∉ w.nodeList)
-      : (w.to_WalkNotIn_of_notIn_nodeList h).nodeList = sorry := sorry
+    theorem first_mem_nodes {i j} (w : graph.Walk i j) : i ∈ w.nodes :=
+      match w with
+      | nil _ => rfl
+      | cons _ k w _ h => Or.inl w.first_mem_nodes
+    theorem last_mem_nodes {i j} (w : graph.Walk i j) : j ∈ w.nodes :=
+      match w with
+      | nil _ => rfl
+      | cons _ k w _ h => Or.inr rfl
+    def to_WalkIn_of_Subset {i j} (w : graph.Walk i j) {s} [DecidableSet s] (h : w.nodes ⊆ s)
+      : graph.WalkIn s ⟨i, h w.first_mem_nodes⟩ ⟨j, h w.last_mem_nodes⟩ :=
+      match w, h with
+      | Walk.nil _, h => Walk.nil _
+      | Walk.cons _ k w _ hks, h =>
+        let r := w.to_WalkIn_of_Subset λ _ hx => h (Or.inl hx)
+        Walk.cons _ _ r _ hks
+    theorem to_WalkIn_of_Subset_preserves {i j} (w : graph.Walk i j) {s} [DecidableSet s] (h : w.nodes ⊆ s)
+      : (w.to_WalkIn_of_Subset h).nodes = sorry := sorry
+
 
     end Walk
 
@@ -86,20 +109,15 @@ section
 
   def Path (graph : SimpleGraph α) (i j) := { w : graph.Walk i j // List.Nodup w.nodeList }
 
+  def Path2 (graph : SimpleGraph α) (i j) := { w : graph.Walk i j // ∀ i, i ∈ w.nodes → False }
+  #exit
+
   section
     variable {graph : SimpleGraph α}
     namespace Path
     def cons  {i k : α} (p : graph.Path i k) {j : α} (h : graph.isEdge k j = true) (hj : j ∉ p.val.nodeList)
       : graph.Path i j :=
       ⟨Walk.cons _ _ p.val _ h, List.nodup_cons.mpr ⟨hj, p.property⟩⟩
-
-    -- def th {i j} (w : graph.Path i j) {a} (h : a ∉ w.val.nodeList)
-    --   : sorry :=
-    --   match i, j, w, h with
-    --   | _, _, ⟨Walk.nil _, _⟩, h => sorry
-    --   | i, j, ⟨Walk.cons _ k w _ hks, hn⟩, h =>
-    --     let r : Walk .. := (w.to_WalkNotIn_of_notIn_nodeList λ c => h $ List.mem_cons.mpr $ Or.inr c)
-    --     sorry
 
     def to_PathNotIn_of_notIn_nodeList {i j} (p : graph.Path i j) {a} (h : a ∉ p.val.nodeList)
       : (graph.induce (Set.compl {a})).Path
@@ -108,20 +126,27 @@ section
       match i, j, p, h with
       | _, _, ⟨Walk.nil _, _⟩, h => ⟨Walk.nil _, List.nodup_singleton _⟩
       | i, j, ⟨Walk.cons _ k w _ hks, hn⟩, h =>
-        let p : graph.Path i k := ⟨w, (List.nodup_cons.mp hn).2⟩
+        have hn := List.nodup_cons.mp hn
         let wr : Walk .. := (w.to_WalkNotIn_of_notIn_nodeList λ c => h $ List.mem_cons.mpr $ Or.inr c)
-        let r := (to_PathNotIn_of_notIn_nodeList p λ c => h $ List.mem_cons.mpr $ Or.inr c)
-        -- have : w.nodeList = r.val.nodeList := sorry
-        have hr := r.property
-        r.cons hks $ by
-          dsimp
-          intro c
-          sorry
-      termination_by _ p _ _ => p.val.length
-      decreasing_by simp_wf; dsimp [Walk.length]; simp_arith
+        have hr : wr.nodeList.map _ = w.nodeList := w.to_WalkNotIn_of_notIn_nodeList_preserves_nodeList _
+        have : List.Nodup wr.nodeList := sorry -- from hn, via hr using the fact that map is injective
+        let r : Path .. := ⟨wr, this⟩
+        r.cons hks $ show _ ∉ wr.nodeList from sorry -- from hn using hr
+
+    def to_PathIn_of_Subset {i j} (p : graph.Path i j) {s} [DecidableSet s] (h : p.val.nodes ⊆ s)
+      : (graph.induce s).Path ⟨i, h p.val.first_mem_nodes⟩ ⟨j, h p.val.last_mem_nodes⟩ :=
+      match i, j, p, h with
+      | _, _, ⟨Walk.nil _, _⟩, h => ⟨Walk.nil _, List.nodup_singleton _⟩
+      | i, j, ⟨Walk.cons _ k w _ hks, hn⟩, h =>
+      sorry
+
+#exit
+
     end Path
   end
   
+  example (a : List α) (b : List β) (f : α → β) (hf : f.Injective) (h : a.map f = b) (ha : a.Nodup) : b.Nodup :=
+    sorry
 
   #exit
 

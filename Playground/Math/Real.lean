@@ -11,7 +11,7 @@ class Inv.{u} (α : Type u) where
   inv : α → α
 postfix:100 "⁻¹" => Inv.inv
 
-class Real_Data.{u} (R : Type u) 
+class Real_Data.{u} (R : Type u)
 extends Add R, Neg R, Zero R, Mul R, Inv R, One R
 
 instance {R} [Real_Data R] : Sub R where
@@ -97,7 +97,9 @@ section
     rw [add_neg] at h
     exact h
   theorem le_of_nonneg_sub {a b : ℝ} (h : 0 ≤ b - a) : a ≤ b := by
-    sorry
+    rw [←le_add_right_iff _ _ (-a)]
+    rw [add_neg]
+    exact h
 
 
   theorem neg_mul_map_left (a b : ℝ) : -(a * b) = -a * b := by

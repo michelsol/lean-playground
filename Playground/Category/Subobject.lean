@@ -17,12 +17,12 @@ structure SubobjectClassifier (C) [Category C] [Terminals C] where
   comm : ∀ ⦃X⦄ (U : Subobject X), U.mono ≫ χ U = (terminal.existence ⟨U.object⟩).choose ≫ τ
   property : 
     let pullbackDiagram {X : C} (U : Subobject X) : Pullback.Data (χ U) τ := {
-        object := U.object
-        morphism₁ := U.mono
-        morphism₂ := (terminal.existence ⟨U.object⟩).choose
         commutative := comm U
       }
     ∀ ⦃X⦄ (U : Subobject X), Functor.Universal.Property (pullbackDiagram U)
+  -- intuitively a subobject classifer is a χ and an element τ of some truth universe Ω 
+  -- such that U is the most general solution to the χ U = τ problem iow, 
+  -- U = { x | χ U (x) = true } = (χ U)⁻¹(True)
 
 section
   variable {C} [Category C] [Terminals C] (s : SubobjectClassifier C)
