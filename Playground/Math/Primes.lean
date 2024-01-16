@@ -2,55 +2,85 @@ import Mathlib
 
 namespace Nat
 
-def Divisor (n d : Nat) := d * (n.div d) = n
-instance : Decidable (Divisor n d) := decEq ..
+structure Divisor (n d : Nat) : Prop where
+  divisor : d * (n / d) = n
+
+namespace Divisor
+theorem iff : Divisor n d ↔ d * (n / d) = n := ⟨λ ⟨h⟩ => h, λ h => ⟨h⟩⟩
+instance : Decidable (Divisor n d) := by rw [iff]; apply decEq
+
+structure Proper (n d) extends Divisor n d : Prop where
+  proper : d < n
+end Divisor
 
 def properDivs (n : Nat) := List.range n |>.filter (decide $ n.Divisor .)
 
-namespace Divisor
-section
+namespace Divisor.Proper
 open List
-variable {n d : Nat}
 
-theorem of_mem_properDivs (h : d ∈ n.properDivs) : Divisor n d := by
-  erw [mem_filter, decide_eq_true_iff] at h
-  exact h.2
+theorem of_mem_properDivs (h : d ∈ n.properDivs) : Proper n d := by
+  erw [mem_filter, mem_range, decide_eq_true_iff] at h
+  constructor
+  . exact h.2
+  . exact h.1
 
-def dividend (_ : Divisor n d) := n
-def val (_ : Divisor n d) := d
-end
+theorem to_mem_properDivs (h : Proper n d) : d ∈ n.properDivs := by
+  erw [mem_filter, mem_range, decide_eq_true_iff]
+  constructor
+  . exact h.2
+  . exact h.1
 
-def Proper (_ : Divisor n d) := d < n
-
-namespace Proper
-section
-open List
-variable {hd : Divisor n d}
-
-theorem of_mem_properDivs (h : d ∈ n.properDivs) : (of_mem_properDivs h).Proper := by
-  erw [mem_filter, mem_range] at h
-  exact h.1
-
-theorem to_mem_properDivs (h : hd.Proper) : hd.val ∈ hd.dividend.properDivs := by
-  erw [mem_filter, decide_eq_true_iff, mem_range]
-  exact ⟨h, hd⟩
-
-theorem iff : hd.Proper ↔ hd.val ∈ hd.dividend.properDivs := by
+theorem iff_mem_properDivs : Proper n d ↔ d ∈ n.properDivs := by
   constructor
   . exact to_mem_properDivs
   . exact of_mem_properDivs
 
-end
-end Proper
-end Divisor
+end Divisor.Proper
+
+-- #eval decide (Divisor 1 0)
+
+example : decide (Divisor 1 0) = false := by
+  rw [decide_eq_false]
+  rw [Divisor.iff]
+  decide
+
+theorem properDivs_0_length  : (properDivs 0).length = 0 := rfl
+theorem properDivs_1_length  : (properDivs 1).length = 0 := by
+  have : decide (Divisor 1 0) = false := by
+    rw [decide_eq_false]
+    rw [Divisor.iff]
+    decide
+  show List.length (match decide _ with | true => _ | false => _) = 0
+  rw [this]
+  rfl
+
+theorem properDivs_length_ge_1_of_ge_2  (hn : n ≥ 2) : n.properDivs.length ≥ 1 := by
+  apply List.length_pos_iff_exists_mem.mpr
+  exists 1
+  rw [←Divisor.Proper.iff_mem_properDivs]
+  constructor
+  . rw [Divisor.iff, Nat.div_one, Nat.one_mul]
+  . exact hn
 
 
+structure IsPrime (n : Nat) : Prop where
+  is_prime : n.properDivs.length = 1
 
-def IsPrime (n : Nat) := n.properDivs.length = 1
-instance : DecidablePred IsPrime := λ _ => decEq ..
+namespace IsPrime
+theorem iff : IsPrime n ↔ n.properDivs.length = 1 := ⟨λ ⟨h⟩ => h, λ h => ⟨h⟩⟩
+instance : Decidable (IsPrime n) := by rw [iff]; apply decEq
+end IsPrime
 
--- def smallestPrimeDiv (n : Nat) :=
---   n.properDivs[1]
+
+def smallestPrimeDiv (n : Nat) (hn : n ≥ 2) : Nat :=
+  if h : IsPrime n then n
+  else
+    have : 1 < n.properDivs.length := Ne.lt_of_le' (by
+      show ¬_ = _
+      erw [←IsPrime.iff]
+      exact h) $ properDivs_length_ge_1_of_ge_2 hn
+    n.properDivs[1]
+
 
 -- def decomp (n : Nat) :=
 
