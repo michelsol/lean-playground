@@ -1,7 +1,5 @@
 import Lean
-
-def Array.join {α} : Array (Array α) → Array α :=
-  λ a => ((a.map Array.toList).toList).join.toArray
+import Std.Data.Array.Basic
 
 section
   namespace Lean.Expr
@@ -13,7 +11,7 @@ section
   structure ArrowBinder where
     binder : Binder
     binderInfo : BinderInfo
-  
+
   namespace ArrowBinder
   def name : ArrowBinder → Name := λ x => x.binder.name
   def type : ArrowBinder → Expr := λ x => x.binder.type
@@ -25,7 +23,7 @@ section
       Array.mk <| ⟨⟨currName, curr⟩, binderInfo⟩ :: (getArrowBinders next).data
     | _ => #[]
 
-  def getArrowBindersNames (type : Expr) : Array Name := 
+  def getArrowBindersNames (type : Expr) : Array Name :=
     type.getArrowBinders.map λ x => x.name
 
   def getArrowOutput (type : Expr) : Expr :=
@@ -50,7 +48,7 @@ section
     binder : Binder
     binderInfo : BinderInfo
   deriving Inhabited
-  
+
   namespace ArrowBinder
   def name : ArrowBinder → Name := λ x => x.binder.name
   def type : ArrowBinder → Term := λ x => x.binder.type
@@ -66,13 +64,13 @@ section
       mkNullNode #[mkIdent tail.name],
       mkNullNode #[mkAtom ":", tail.type],
       mkNullNode,
-      mkAtom cl 
+      mkAtom cl
     ]
 
   def mkExplicit (stx : Term) : Term :=
     ⟨mkNode `Lean.Parser.Term.explicit #[mkAtom "@", stx]⟩
 
-  def mkExplicitApp (fn : Term) : (args : Array Term) → Term 
+  def mkExplicitApp (fn : Term) : (args : Array Term) → Term
     | #[]  => fn
     | args => ⟨mkNode `Lean.Parser.Term.app #[mkExplicit fn, mkNullNode args]⟩
 
@@ -120,7 +118,7 @@ section
     ]
 
   def mkDefSimple (name : Name) (levels : Syntax) (binders : Array ArrowBinder) (type : Term) (val : Term) : Syntax :=
-    mkDeclarationSimple <| 
+    mkDeclarationSimple <|
       mkNode `Lean.Parser.Command.def #[
         mkAtom "def",
         mkNode `Lean.Parser.Command.declId #[mkIdent name, levels],
@@ -165,23 +163,23 @@ section
 
   partial def getArrowBinders : Term → Array ArrowBinder
   | `(($ids* : $curr) → $next) =>
-    let arr := ids.map λ 
+    let arr := ids.map λ
       | ⟨ident _ _ name _⟩ => ⟨⟨name, curr⟩, .default⟩
       | s => panic! s!"bad stx: {s}"
     arr ++ getArrowBinders next
   | `({$ids* : $curr} → $next) =>
-    let arr := ids.map λ 
+    let arr := ids.map λ
       | ⟨ident _ _ name _⟩ => ⟨⟨name, curr⟩, .implicit⟩
       | s => panic! s!"bad stx: {s}"
     arr ++ getArrowBinders next
   | `(∀ $binders*, $next) =>
     let arr := binders.map λ
       | ⟨node _ `Lean.Parser.Term.explicitBinder #[
-          atom .., node _ _ ids, node _ _ #[atom .., type], node .., atom ..]⟩ => ids.map λ  
+          atom .., node _ _ ids, node _ _ #[atom .., type], node .., atom ..]⟩ => ids.map λ
             | ident _ _ name _ => ⟨⟨name, ⟨type⟩⟩, .default⟩
             | s => panic! s!"bad stx: {s}"
       | ⟨node _ `Lean.Parser.Term.implicitBinder #[
-          atom .., node _ _ ids, node _ _ #[atom .., type], atom ..]⟩ => ids.map λ  
+          atom .., node _ _ ids, node _ _ #[atom .., type], atom ..]⟩ => ids.map λ
             | ident _ _ name _ => ⟨⟨name, ⟨type⟩⟩, .implicit⟩
             | s => panic! s!"bad stx: {s}"
       | s => panic! s!"bad stx: {s}"
@@ -189,7 +187,7 @@ section
   | `($curr → $next) => #[⟨⟨.anonymous, curr⟩, .default⟩] ++ getArrowBinders next
   | _ => #[]
 
-  def getArrowBindersNames (type : Term) : Array Name := 
+  def getArrowBindersNames (type : Term) : Array Name :=
     (getArrowBinders type).map λ x => x.name
 
   partial def getArrowOutput (type : Term) : Term :=
@@ -218,7 +216,7 @@ section
 
   def getLast (name : Name) : Name :=
     name.components.getLastD .anonymous
-  
+
   def getSuffix (name : Name) : Name :=
     name.components.getLastD .anonymous
 

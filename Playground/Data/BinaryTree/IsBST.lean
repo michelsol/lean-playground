@@ -1,5 +1,6 @@
 import Playground.Data.BinaryTree.Basic
 import Playground.Data.List.Is_Sorted
+import Std.Data.List.Basic
 import Mathlib.Data.List.Perm
 import Mathlib.Init.Order.Defs
 
@@ -11,8 +12,8 @@ section
   inductive IsBST : BinaryTree type → Prop
   | nil : nil.IsBST
   | node {value left right}
-    (left_IsBST : left.IsBST) (left_le : ∀ x ∈ left, x ≤ value) 
-    (right_IsBST : right.IsBST) (right_ge : ∀ x ∈ right, value ≤ x) 
+    (left_IsBST : left.IsBST) (left_le : ∀ x ∈ left, x ≤ value)
+    (right_IsBST : right.IsBST) (right_ge : ∀ x ∈ right, value ≤ x)
     : (node value left right).IsBST
 
   theorem IsBST_iff (value : type) (left right) : (node value left right).IsBST ↔
@@ -28,7 +29,7 @@ section
   theorem IsBST_iff_infixList_IsSorted (tree : BinaryTree type)
     : tree.IsBST ↔ tree.infixList.IsSorted := by
     induction tree with
-    | nil => 
+    | nil =>
       constructor
       . intro _; constructor
       . intro _; constructor
@@ -85,10 +86,10 @@ section
   : (tree.insertAsInBST x).IsBST
   := match tree, h_tree with
   | nil, _ => .node .nil (λ _ => λ.) .nil (λ _ => λ.)
-  | node value left right, 
-    .node left_IsBST left_le right_IsBST right_ge => 
+  | node value left right,
+    .node left_IsBST left_le right_IsBST right_ge =>
     show IsBST (ite ..) from
-    if h_value : x ≤ value then if_pos h_value ▸ 
+    if h_value : x ≤ value then if_pos h_value ▸
       have left_IsBST := left.insertAsInBST_IsBST_of_IsBST left_IsBST x
       have left_le := λ x hx => match (left.Mem_insertAsInBST_iff ..).mp hx with
         | .inl hx => left_le x hx
@@ -102,18 +103,20 @@ section
         | .inr hx => hx ▸ h_value
       .node left_IsBST left_le right_IsBST right_ge
 
+  open List
+
   theorem insertAsInBST_infixList_Perm_cons_infixList (tree : BinaryTree type) (x : type)
-  : (tree.insertAsInBST x).infixList ~ x :: tree.infixList
+  :
+  List.Perm (tree.insertAsInBST x).infixList (x :: tree.infixList)
   :=
-  open List in
   match tree with
   | nil => List.Perm.refl [x]
-  | node value _ _ => 
-    show infixList (ite ..) ~ _ from
-    if h_value : x ≤ value then if_pos h_value ▸ 
+  | node value _ _ =>
+    show List.Perm (infixList (ite ..)) _ from
+    if h_value : x ≤ value then if_pos h_value ▸
       (insertAsInBST_infixList_Perm_cons_infixList ..).append_right _
     else if_neg h_value ▸
-      ((((insertAsInBST_infixList_Perm_cons_infixList ..).cons _).trans 
+      ((((insertAsInBST_infixList_Perm_cons_infixList ..).cons _).trans
         (List.Perm.swap ..).symm).append_left _).trans List.perm_middle
 
 
@@ -125,30 +128,30 @@ section
     else if x < value then left.searchAsInBST x
     else right.searchAsInBST x
 
-  theorem searchAsInBST_eq_decide_Mem_of_IsBST {tree : BinaryTree type} (h_tree : tree.IsBST) 
+  theorem searchAsInBST_eq_decide_Mem_of_IsBST {tree : BinaryTree type} (h_tree : tree.IsBST)
   (x : type) : tree.searchAsInBST x = decide (x ∈ tree)
   := match tree, h_tree with
   | nil, _ => rfl
-  | node value left right, 
-    .node left_is_bst left_le right_is_bst right_ge => 
+  | node value left right,
+    .node left_is_bst left_le right_is_bst right_ge =>
     show ite .. = ite .. from
     if h_e : value = x then if_pos h_e ▸ if_pos (Mem.eq h_e.symm) ▸ rfl
     else if h_l : x < value then if_neg h_e ▸ if_pos h_l ▸
       searchAsInBST_eq_decide_Mem_of_IsBST left_is_bst _ ▸
       show ite .. = _ from
       if v_in_left : x ∈ left then if_pos v_in_left ▸ if_pos v_in_left.left ▸ rfl
-      else if_neg v_in_left ▸ if_neg 
+      else if_neg v_in_left ▸ if_neg
       (show ¬x ∈ node value left right from
       λ | .eq h => h_e h.symm
         | .left h => v_in_left h
         | .right h => not_le_of_gt h_l $ right_ge x h
       ) ▸ rfl
     else have h_r : value < x := lt_of_le_of_ne (le_of_not_lt h_l) h_e
-      if_neg h_e ▸ if_neg h_l ▸ 
+      if_neg h_e ▸ if_neg h_l ▸
       searchAsInBST_eq_decide_Mem_of_IsBST right_is_bst _ ▸
       show ite .. = _ from
       if v_in_right : x ∈ right then if_pos v_in_right ▸ if_pos v_in_right.right ▸ rfl
-      else if_neg v_in_right ▸ if_neg 
+      else if_neg v_in_right ▸ if_neg
       (show ¬x ∈ node value left right from
       λ | .eq h => h_e h.symm
         | .left h => not_le_of_gt h_r $ left_le x h

@@ -12,7 +12,7 @@ section
 
   instance (language : FOL) (n) : DecidableEq (language.function n) := language.fdeq n
   instance (language : FOL) (n) : DecidableEq (language.relation n) := language.rdeq n
-  
+
   abbrev Var := Nat
   abbrev PropVar := Nat
 
@@ -54,14 +54,14 @@ section
     namespace Term.Mem
     theorem Mem_var_iff (v : Var) (x)
       : v ∈ (Term.var (language := language) x) ↔ v = x := ⟨
-        let motive : (t : Term language) → v ∈ t → Prop := 
+        let motive : (t : Term language) → v ∈ t → Prop :=
           λ | .var x', _ => v = x' | _, _ => True
         rec (motive := motive) rfl (λ _ _ => trivial)
         , λ h => h ▸ .var⟩
 
     theorem Mem_app_iff (v : Var) (n) (f) (l)
       : v ∈ (Term.app (language := language) n f l) ↔ ∃ k, v ∈ l k := ⟨
-      let motive : (t : Term language) → v ∈ t → Prop := 
+      let motive : (t : Term language) → v ∈ t → Prop :=
         λ | .app _ _ l', _ => ∃ k, v ∈ l' k | _, _ => True
       rec (motive := motive) (by simp) (λ hk _ => ⟨_, hk⟩)
       , λ ⟨_, hk⟩ => .app hk⟩
@@ -95,23 +95,23 @@ section
 
     def Formula.decidable_Eq : DecidableEq (Formula language)
     | propVar .., propVar .. => by rw [propVar.injEq]; infer_instance
-    | and .., or .. | and .., imp .. | and .., bot .. | and .., propVar .. 
+    | and .., or .. | and .., imp .. | and .., bot .. | and .., propVar ..
     | and .., app .. | and .., all .. | and .., ex .. | and .., eq .. => isFalse Formula.noConfusion
-    | or .., and .. | or .., imp .. | or .., bot .. | or .., propVar .. 
+    | or .., and .. | or .., imp .. | or .., bot .. | or .., propVar ..
     | or .., app .. | or .., all .. | or .., ex .. | or .., eq .. => isFalse Formula.noConfusion
-    | imp .., and .. | imp .., or .. | imp .., bot .. | imp .., propVar .. 
+    | imp .., and .. | imp .., or .. | imp .., bot .. | imp .., propVar ..
     | imp .., app .. | imp .., all .. | imp .., ex .. | imp .., eq .. => isFalse Formula.noConfusion
-    | bot .., and .. | bot .., or .. | bot .., imp .. | bot .., propVar .. 
+    | bot .., and .. | bot .., or .. | bot .., imp .. | bot .., propVar ..
     | bot .., app .. | bot .., all .. | bot .., ex .. | bot .., eq .. => isFalse Formula.noConfusion
     | propVar .., and .. | propVar .., or .. | propVar .., imp .. | propVar .., bot ..
     | propVar .., app .. | propVar .., all .. | propVar .., ex .. | propVar .., eq .. => isFalse Formula.noConfusion
-    | app .., and .. | app .., or .. | app .., imp .. | app .., bot .. | app .., propVar .. 
+    | app .., and .. | app .., or .. | app .., imp .. | app .., bot .. | app .., propVar ..
     | app .., all .. | app .., ex .. | app .., eq .. => isFalse Formula.noConfusion
-    | all .., and .. | all .., or .. | all .., imp .. | all .., bot .. | all .., propVar .. 
+    | all .., and .. | all .., or .. | all .., imp .. | all .., bot .. | all .., propVar ..
     | all .., app .. | all .., ex .. | all .., eq .. => isFalse Formula.noConfusion
-    | ex .., and .. | ex .., or .. | ex .., imp .. | ex .., bot .. | ex .., propVar .. 
+    | ex .., and .. | ex .., or .. | ex .., imp .. | ex .., bot .. | ex .., propVar ..
     | ex .., app .. | ex .., all .. | ex .., eq .. => isFalse Formula.noConfusion
-    | eq .., and .. | eq .., or .. | eq .., imp .. | eq .., bot .. | eq .., propVar .. 
+    | eq .., and .. | eq .., or .. | eq .., imp .. | eq .., bot .. | eq .., propVar ..
     | eq .., app .. | eq .., all .. | eq .., ex .. => isFalse Formula.noConfusion
     | and f g, and f' g' => by
       rw [and.injEq]; let _ := decidable_Eq f f'; let _ := decidable_Eq g g'
@@ -152,85 +152,85 @@ section
     instance : Membership Var (Formula language) where mem := Formula.Mem
 
     namespace Formula.Mem
-    
+
     theorem Mem_and_iff (v : Var) (f g : Formula language)
       : v ∈ (f ∧ g) ↔ (v ∈ f ∨ v ∈ g) := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .and f' g', _ => (v ∈ f' ∨ v ∈ g') | _, _ => True
       rec (motive := motive) (and_l := λ h _ => Or.inl h) (and_r := λ h _ => Or.inr h)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , λ | .inl h => .and_l h | .inr h => .and_r h⟩
 
     theorem Mem_or_iff (v : Var) (f g : Formula language)
       : v ∈ (f ∨ g) ↔ (v ∈ f ∨ v ∈ g) := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .or f' g', _ => (v ∈ f' ∨ v ∈ g') | _, _ => True
       rec (motive := motive) (or_l := λ h _ => Or.inl h) (or_r := λ h _ => Or.inr h)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , λ | .inl h => .or_l h | .inr h => .or_r h⟩
 
     theorem Mem_imp_iff (v : Var) (f g : Formula language)
       : v ∈ (f ⇒ g) ↔ (v ∈ f ∨ v ∈ g) := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .imp f' g', _ => (v ∈ f' ∨ v ∈ g') | _, _ => True
       rec (motive := motive) (imp_l := λ h _ => Or.inl h) (imp_r := λ h _ => Or.inr h)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , λ | .inl h => .imp_l h | .inr h => .imp_r h⟩
 
     theorem Mem_bot_iff (v : Var)
       : v ∈ (⊥ : Formula language) ↔ False := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .bot, _ => False | _, _ => True
       rec (motive := motive) (by simp) (by simp)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , False.elim⟩
 
     theorem Mem_propVar_iff (v : Var) {x}
       : v ∈ (.propVar x : Formula language) ↔ False := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .propVar _, _ => False | _, _ => True
       rec (motive := motive) (by simp) (by simp)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , False.elim⟩
 
-    theorem Mem_app_iff (v : Var) (n) (f) (l) 
+    theorem Mem_app_iff (v : Var) (n) (f) (l)
       : v ∈ (Formula.app (language := language) n f l) ↔ (∃ k, v ∈ l k) := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .app _ _ l', _ => (∃ k, v ∈ l' k) | _, _ => True
       rec (motive := motive) (app := λ h => ⟨_, h⟩) (by simp)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , λ ⟨_, h⟩ => .app h⟩
 
     theorem Mem_all_iff (v : Var) (x) (f : Formula language)
       : v ∈ (∀ x; f) ↔ (v = x ∨ v ∈ f) := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .all x' f', _ => (v = x' ∨ v ∈ f') | _, _ => True
       rec (motive := motive) (all_x := Or.inl rfl) (all_f := λ h _ => Or.inr h)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , λ | .inl h => h ▸ .all_x | .inr h => .all_f h⟩
 
     theorem Mem_ex_iff (v : Var) (x) (f : Formula language)
       : v ∈ (∃ x; f) ↔ (v = x ∨ v ∈ f) := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .ex x' f', _ => (v = x' ∨ v ∈ f') | _, _ => True
       rec (motive := motive) (ex_x := Or.inl rfl) (ex_f := λ h _ => Or.inr h)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , λ | .inl h => h ▸ .ex_x | .inr h => .ex_f h⟩
 
     theorem Mem_eq_iff (v : Var) (a b : Term language)
       : v ∈ (a ≡ b) ↔ (v ∈ a ∨ v ∈ b) := ⟨
-      let motive : (t : Formula language) → v ∈ t → Prop := 
+      let motive : (t : Formula language) → v ∈ t → Prop :=
         λ | .eq a' b', _ => (v ∈ a' ∨ v ∈ b') | _, _ => True
       rec (motive := motive) (eq_l := λ h => Or.inl h) (eq_r := λ h => Or.inr h)
-        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp) 
+        (by simp) (by simp) (by simp) (by simp) (by simp) (by simp)
         (by simp) (by simp) (by simp) (by simp) (by simp)
       , λ | .inl h => .eq_l h | .inr h => .eq_r h⟩
 
@@ -268,7 +268,7 @@ section
         rw [Mem_eq_iff]
         infer_instance
 
-    instance (v : Var) : (f : Formula language) → Decidable (v ∈ f) := decidable_Mem v 
+    instance (v : Var) : (f : Formula language) → Decidable (v ∈ f) := decidable_Mem v
 
     end Formula.Mem
 
@@ -337,10 +337,10 @@ section
 
     theorem Term.lt_newFreshVar_of_Mem
       : ∀ (t : Term language), ∀ ⦃v⦄, v ∈ t → v < t.newFreshVar
-    | var x, v, hv => 
+    | var x, v, hv =>
       have hv := (Term.Mem.Mem_var_iff ..).mp hv
       hv ▸ by simp_arith [newFreshVar]
-    | app n f l, v, hv => 
+    | app n f l, v, hv =>
       have ⟨k, h⟩ := (Term.Mem.Mem_app_iff ..).mp hv
       have h := lt_newFreshVar_of_Mem _ h
       have := (Fin.Family.of λ k => (l k).newFreshVar).sum_ge k
@@ -348,7 +348,7 @@ section
 
     theorem Term.newFreshVar_not_Mem (t : Term language) : t.newFreshVar ∉ t :=
       λ c => Nat.lt_irrefl _ (t.lt_newFreshVar_of_Mem c)
-    
+
     theorem Term.subst_of_not_Mem {x} {t : Term language} (u : Term language) (h : x ∉ t)
       : t[x := u] = t :=
         match t with
@@ -383,7 +383,7 @@ section
     def not_elim : (s ⊢ ¬p) → (s ⊢ p ⇒ ⊥) := id
     def absurd_r : (s ⊢ ¬p ⇒ ⊥) → (s ⊢ p) := λ h =>
       or_elim (lem p) (imp_intro <| ax <| by simp)
-        <| imp_intro 
+        <| imp_intro
           <| bot_elim _
             <| imp_elim (ax <| by simp)
               <| weaken _ h
@@ -405,12 +405,12 @@ section
 
   scoped notation:max "⟦" t " | " i "⟧"  => Term.value i t
 
-  def Interpretation.setPropValue {language} (i : Interpretation language) (v : Nat) (d : Bool) 
-  : Interpretation language := 
+  def Interpretation.setPropValue {language} (i : Interpretation language) (v : Nat) (d : Bool)
+  : Interpretation language :=
   { i with propValue := λ a => if a = v then d else i.propValue a }
 
-  def Interpretation.setVarValue {language} (i : Interpretation language) (v : Nat) (d : i.domain) 
-  : Interpretation language := 
+  def Interpretation.setVarValue {language} (i : Interpretation language) (v : Nat) (d : i.domain)
+  : Interpretation language :=
   { i with varValue := λ a => if a = v then d else i.varValue a }
 
   scoped notation:max i "⟦" v " := " d "⟧" => Interpretation.setVarValue i v d
@@ -430,14 +430,14 @@ section
   scoped notation:max "⊨[" i "] " f  => Formula.isTrueUnder i f
   def Formula.isTrue {language} (f : Formula language) := ∀ i, ⊨[i] f
   scoped notation:max "⊨ " f  => Formula.isTrue f
-  def Formula.entailsUnder {language} (i : Interpretation language) 
+  def Formula.entailsUnder {language} (i : Interpretation language)
     (s : List (Formula language)) (f : Formula language) := (∀ x ∈ s, ⊨[i] x) → ⊨[i] f
   scoped notation:max s " ⊨[" i "] " f  => Formula.entailsUnder i s f
   def Formula.entails {language} (s : List (Formula language)) (f : Formula language) := ∀ i, s ⊨[i] f
   scoped notation:max s " ⊨ " f  => Formula.entails s f
 
   def Proof.size {s} (f : Formula language) (h : s ⊢ f) : Nat :=
-    let x : Inhabited Nat := 
+    let x : Inhabited Nat :=
     match h with
     | ax .. => ⟨1⟩
     | weaken h1 h2 => ⟨h2.size + 1⟩
@@ -484,7 +484,7 @@ section
     | or_elim h1 h2 h3 => λ i hs => match soundness h1 i hs with
       | .inl h1 => soundness h2 i hs h1
       | .inr h1 => soundness h3 i hs h1
-    | imp_intro h1 => λ i hs => 
+    | imp_intro h1 => λ i hs =>
       λ b => soundness h1 i λ x => λ | .head _ => b | .tail _ hx => hs _ hx
     | imp_elim h1 h2 => λ i hs => soundness h2 i hs (soundness h1 i hs)
     | bot_elim h1 h2 => λ i hs => (soundness h2 i hs).elim
@@ -492,7 +492,7 @@ section
     | all_intro x h2 h3 => λ i hs =>
       λ d => soundness h3 i⟦x := d⟧ λ g hg =>
         (g.isTrueUnder_invariant_of_not_Mem (h2 g hg) i d).mp (hs g hg)
-    | all_elim (x := x) (t := t) h1 h2 => λ i hs => 
+    | all_elim (x := x) (t := t) h1 h2 => λ i hs =>
       let j := i⟦x := ⟦t | i⟧⟧
       have := soundness h2 j sorry sorry
       sorry --needs a lemma
@@ -500,8 +500,11 @@ section
     | ex_elim .. => sorry
     | eq_intro .. => sorry
     | eq_elim .. => sorry
-  termination_by _ f h => h.size
-  decreasing_by simp_wf; dsimp [size]; simp_arith
+  termination_by h => h.size
+  decreasing_by
+    all_goals simp_wf
+    all_goals dsimp [size]
+    all_goals simp_arith
 
 
   theorem Term.subst_value {language} {a} {v} {t} (i : Interpretation language)
@@ -551,7 +554,7 @@ section
     | all x p, .all h1 h2 h3 => by
       dsimp [subst]
       dsimp [isTrueUnder]
-      have : {α : Type} → {p q : α → _} → (∀ x, (p x ↔ q x)) → ((∀ x, p x) ↔ ∀ x, q x) := 
+      have : {α : Type} → {p q : α → _} → (∀ x, (p x ↔ q x)) → ((∀ x, p x) ↔ ∀ x, q x) :=
         λ h => ⟨λ g x => (h x).mp (g x), λ g x => (h x).mpr (g x)⟩
       apply this
       intro d
@@ -560,7 +563,7 @@ section
     | ex x p, .ex h1 h2 h3 => by
       dsimp [subst]
       dsimp [isTrueUnder]
-      have : {α : Type} → {p q : α → _} → (∀ x, (p x ↔ q x)) → ((∃ x, p x) ↔ ∃ x, q x) := 
+      have : {α : Type} → {p q : α → _} → (∀ x, (p x ↔ q x)) → ((∃ x, p x) ↔ ∃ x, q x) :=
         λ h => ⟨λ ⟨x, g⟩ => ⟨x, (h x).mp g⟩, λ ⟨x, g⟩ => ⟨x, (h x).mpr g⟩⟩
       apply this
       intro d
@@ -574,14 +577,14 @@ section
 
 
 
-    example {language} (i : Interpretation language) (f : Formula language) 
+    example {language} (i : Interpretation language) (f : Formula language)
     (x : Var) (v : Var)
     (t : Term language) (d : i.domain) :
       (⊨[i⟦x := d⟧⟦v := ⟦t | i⟦x := d⟧⟧⟧] f) ↔ ⊨[i⟦v := ⟦t | i⟧⟧⟦x := d⟧] f
       := sorry
 
     open Term in
-    example {language} (i : Interpretation language) (a : Term language) 
+    example {language} (i : Interpretation language) (a : Term language)
     (x : Var) (v : Var)
     (t : Term language) (d : i.domain) :
       ⟦a | i⟦x := d⟧⟦v := ⟦t | i⟦x := d⟧⟧⟧ ⟧ = ⟦a | i⟦v := ⟦t | i⟧⟧⟦x := d⟧ ⟧
